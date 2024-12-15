@@ -11,6 +11,10 @@
 <body>
     <!-- Include the Three.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+// Initialize OrbitControls for interactive manipulation
+const controls = new THREE.OrbitControls(camera, renderer.domElement
+::contentReference[oaicite:0]{index=0}
     <script>
 // Create the scene
 const scene = new THREE.Scene();
@@ -117,10 +121,7 @@ function animate() {
     renderer.render(scene, camera); // Render the scene from the perspective of the camera
 }
 animate(); // Start the animation loop
-<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
-// Initialize OrbitControls for interactive manipulation
-const controls = new THREE.OrbitControls(camera, renderer.domElement
-::contentReference[oaicite:0]{index=0}
+
  
 
     </script>
