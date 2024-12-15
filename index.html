@@ -9,41 +9,44 @@
     </style>
 </head>
 <body>
-    <!-- Include the Three.js library -->
+    <!-- Three.js and OrbitControls scripts included here -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script>
 // Create the scene
 const scene = new THREE.Scene();
 
-// Set up the camera with a perspective view
+// Set up the camera
 const camera = new THREE.PerspectiveCamera(
-    75, // Field of view
-    window.innerWidth / window.innerHeight, // Aspect ratio
-    0.1, // Near clipping plane
-    1000 // Far clipping plane
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
 );
-camera.position.z = 5; // Position the camera along the z-axis
+camera.position.z = 5;
 
-// Initialize the WebGL renderer
+// Initialize the renderer
 const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight); // Set the size of the rendering window
-document.body.appendChild(renderer.domElement); // Append the renderer to the DOM
-// Define the geometry of the sphere with a radius of 1 and 32 segments for width and height
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Initialize OrbitControls
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+// Sphere geometry
 const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
 
-// Create a material with a semi-transparent white color
+// Sphere material
 const sphereMaterial = new THREE.MeshBasicMaterial({
     color: 0xffffff,
     opacity: 0.3,
     transparent: true,
-    wireframe: true // Display the sphere as a wireframe
+    wireframe: true
 });
 
-// Combine the geometry and material into a mesh
+// Create the sphere
 const blochSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-scene.add(blochSphere); // Add the sphere to the scene
-// Function to create an axis line from start to end with a specified color
+scene.add(blochSphere);
+// Function to create an axis
 function createAxis(start, end, color) {
     const material = new THREE.LineBasicMaterial({ color: color });
     const points = [start, end];
@@ -51,75 +54,72 @@ function createAxis(start, end, color) {
     return new THREE.Line(geometry, material);
 }
 
-// Add the x-axis in red
+// X-axis (red)
 const xAxis = createAxis(
-    new THREE.Vector3(-1.5, 0, 0), // Start point
-    new THREE.Vector3(1.5, 0, 0), // End point
-    0xff0000 // Red color
+    new THREE.Vector3(-1.5, 0, 0),
+    new THREE.Vector3(1.5, 0, 0),
+    0xff0000
 );
 scene.add(xAxis);
 
-// Add the y-axis in green
+// Y-axis (green)
 const yAxis = createAxis(
-    new THREE.Vector3(0, -1.5, 0), // Start point
-    new THREE.Vector3(0, 1.5, 0), // End point
-    0x00ff00 // Green color
+    new THREE.Vector3(0, -1.5, 0),
+    new THREE.Vector3(0, 1.5, 0),
+    0x00ff00
 );
 scene.add(yAxis);
 
-// Add the z-axis in blue
+// Z-axis (blue)
 const zAxis = createAxis(
-    new THREE.Vector3(0, 0, -1.5), // Start point
-    new THREE.Vector3(0, 0, 1.5), // End point
-    0x0000ff // Blue color
+    new THREE.Vector3(0, 0, -1.5),
+    new THREE.Vector3(0, 0, 1.5),
+    0x0000ff
 );
 scene.add(zAxis);
-// Function to create an arrow representing the qubit state
+// Function to create the qubit arrow
 function createQubitArrow() {
-    const direction = new THREE.Vector3(0, 0, 1); // Default direction along the z-axis
-    const length = 1; // Length of the arrow
-    const color = 0xffff00; // Yellow color
+    const direction = new THREE.Vector3(0, 0, 1);
+    const length = 1;
+    const color = 0xffff00;
     const arrowHelper = new THREE.ArrowHelper(direction, new THREE.Vector3(0, 0, 0), length, color);
     return arrowHelper;
 }
 
 const qubitArrow = createQubitArrow();
-scene.add(qubitArrow); // Add the qubit arrow to the scene
-// Function to update the qubit arrow's direction based on theta and phi angles
+scene.add(qubitArrow);
 function updateQubitState(theta, phi) {
-    // Convert spherical coordinates to Cartesian coordinates
+    // Convert spherical coordinates to Cartesian
     const x = Math.sin(theta) * Math.cos(phi);
     const y = Math.sin(theta) * Math.sin(phi);
     const z = Math.cos(theta);
 
-    // Update the direction of the qubit arrow
+    // Update the arrow direction
     qubitArrow.setDirection(new THREE.Vector3(x, y, z).normalize());
 }
 
-// Example: Set the qubit state to |+> (theta = π/2, phi = 0)
+// Example: Set the qubit state to |+> (θ = π/2, φ = 0)
 updateQubitState(Math.PI / 2, 0);
-// Function to handle window resizing
 function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight; // Update camera aspect ratio
-    camera.updateProjectionMatrix(); // Apply the changes to the camera
-    renderer.setSize(window.innerWidth, window.innerHeight); // Update renderer size
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-// Add event listener for window resize
 window.addEventListener('resize', onWindowResize, false);
-
-// Animation loop to render the scene
 function animate() {
-    requestAnimationFrame(animate); // Request the next frame
+    requestAnimationFrame(animate);
 
     // Optional: Rotate the Bloch sphere for better visualization
     blochSphere.rotation.y += 0.01;
 
-    renderer.render(scene, camera); // Render the scene from the perspective of the camera
-}
-animate(); // Start the animation loop
+    // Update controls
+    controls.update();
 
- 
+    // Render the scene
+    renderer.render(scene, camera);
+}
+animate();
 
     </script>
 </body>
