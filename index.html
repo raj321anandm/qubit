@@ -3,20 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <title>Qubit Bloch Sphere Simulation</title>
-    <script type="text/javascript" src="https://www.glowscript.org/lib/glow.3.2.min.js"></script>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <style>
+        body { margin: 0; }
+        #vpython-container { width: 100vw; height: 100vh; }
+    </style>
 </head>
 <body>
-    <script type="text/javascript">
-        // Initialize GlowScript
-        GlowScript(3.2, 'javascript');
+    <div id="vpython-container"></div>
+    <py-script>
+        from vpython import sphere, vector, arrow, color, pi, scene, rate, label, ring, wtext
+        import math
 
-        // Your adapted VPython code goes here
-        // Example:
-        scene.title = "Qubit Bloch Sphere Simulation with State Vector Display";
-        scene.caption = "Use the buttons below to view different states on the Bloch sphere.\n";
-        scene.background = vector(0.5, 0.5, 1);  // Light orange background
-        scene.forward = vector(-1, -1, -1);  // Adjust the camera view for proper alignment
-        // ... rest of your code ...
-    </script>
+        # Scene settings
+        scene = canvas(title="Qubit Bloch Sphere Simulation with State Vector Display",
+                       background=vector(0.5, 0.5, 1),
+                       forward=vector(-1, -1, -1),
+                       width=1000,
+                       height=600,
+                       autoscale=True,
+                       bind=None,
+                       append_to="vpython-container")
+
+        # White Bloch Sphere
+        bloch_sphere = sphere(radius=1, color=color.white, opacity=0.3, shininess=0.9)
+
+        # Axes
+        z_axis = arrow(pos=vector(0, 0, 0), axis=vector(0, 0, 1.5), color=color.blue, shaftwidth=0.02)
+        x_axis = arrow(pos=vector(0, 0, 0), axis=vector(1.5, 0, 0), color=color.red, shaftwidth=0.02)
+        y_axis = arrow(pos=vector(0, 0, 0), axis=vector(0, 1.5, 0), color=color.green, shaftwidth=0.02)
+
+        # Axis Labels for States
+        label(pos=vector(0, 0, 1.8), text="|0>", color=color.blue, height=20, box=False, opacity=0, bold=True)
+        label(pos=vector(0, 0, -1.8), text="|1>", color=color.blue, height=20, box=False, opacity=0, bold=True)
+        label(pos=vector(1.8, 0, 0), text="|+>", color=color.red, height=20, box=False, opacity=0, bold=True)
+        label(pos=vector(-1.8, 0, 0), text="|->", color=color.red, height=20, box=False, opacity=0, bold=True)
+        label(pos=vector(0, 1.8, 0), text="|i>", color=color.green, height=20, box=False, opacity=0, bold=True)
+        label(pos=vector(0, -1.8, 0), text="|-i>", color=color.green, height=20, box=False, opacity=0, bold=True)
+
+        # Axis Labels for Coordinates
+        label(pos=vector(1.6, 0, 0), text="x-axis", color=color.red, height=15, box=False, opacity=0, bold=True)
+        label(pos=vector(0, 1.6, 0), text="y-axis", color=color.green, height=15, box=False, opacity=0, bold=True)
+        label(pos=vector(0, 0, 1.6), text="z-axis", color=color.blue, height=15, box=False, opacity=0, bold=True)
+
+        # Highlighting the planes
+        xy_plane = ring(pos=vector(0, 0, 0), axis=vector(0, 0, 1), radius=1, thickness=0.01, color=color.cyan, opacity=0.5)
+        yz_plane = ring(pos=vector(0, 0, 0), axis=vector(1, 0, 0), radius=1, thickness=0.01, color=color.orange, opacity=0.5)
+        xz_plane = ring(pos=vector(0, 0, 0), axis=vector(0, 1, 0), radius=1, thickness=0.01, color=color.purple, opacity=0.5)
+
+        # Qubit representation
+        qubit_arrow = arrow(pos=vector(0, 0, 0), axis=vector(0, 0, 1), color=color.yellow, shaftwidth=0.05)
+
+        # Function to update the qubit state and display
+        def update_qubit(theta, phi):
+            # Convert spherical to Cartesian coordinates
+            x = math.sin(theta) * math.cos(phi)
+            y = math.sin(theta) * math.sin(phi)
+            z = math.cos(theta)
+
+            # Set the qubit arrow direction
+            qubit_arrow.axis = vector(x, y, z)
+
+        # Functions to set predefined states
+        def set_state_0():
+            update_qubit(0, 0)
+
+        def set_state_1():
+            update_qubit(pi, 0)
+
+        def set_state_i():
+            update_qubit(pi / 2, pi / 2)
+
+        def set_state_minus_i():
+            update_qubit(pi / 2, 3 * pi / 2)
+
+        def set_superposition_state():
+            update_qubit(pi / 2, 0)
+
+        def set_state_plus():
+            update_qubit(pi / 2, 0)
+
+        def set_state_minus():
+            update_qubit(pi / 2, pi)
+
+        # Initialize the qubit state to |0>
+        set_state_0()
+    </py-script>
 </body>
 </html>
