@@ -2,93 +2,127 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Qubit Bloch Sphere Simulation</title>
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <title>Qubit Bloch Sphere Visualization</title>
     <style>
         body { margin: 0; }
-        #vpython-container { width: 100vw; height: 100vh; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
-    <div id="vpython-container"></div>
-    <py-script>
-        from vpython import sphere, vector, arrow, color, pi, scene, rate, label, ring, wtext
-        import math
+    <!-- Include the Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+// Create the scene
+const scene = new THREE.Scene();
 
-        # Scene settings
-        scene = canvas(title="Qubit Bloch Sphere Simulation with State Vector Display",
-                       background=vector(0.5, 0.5, 1),
-                       forward=vector(-1, -1, -1),
-                       width=1000,
-                       height=600,
-                       autoscale=True,
-                       bind=None,
-                       append_to="vpython-container")
+// Set up the camera with a perspective view
+const camera = new THREE.PerspectiveCamera(
+    75, // Field of view
+    window.innerWidth / window.innerHeight, // Aspect ratio
+    0.1, // Near clipping plane
+    1000 // Far clipping plane
+);
+camera.position.z = 5; // Position the camera along the z-axis
 
-        # White Bloch Sphere
-        bloch_sphere = sphere(radius=1, color=color.white, opacity=0.3, shininess=0.9)
+// Initialize the WebGL renderer
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight); // Set the size of the rendering window
+document.body.appendChild(renderer.domElement); // Append the renderer to the DOM
+// Define the geometry of the sphere with a radius of 1 and 32 segments for width and height
+const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
 
-        # Axes
-        z_axis = arrow(pos=vector(0, 0, 0), axis=vector(0, 0, 1.5), color=color.blue, shaftwidth=0.02)
-        x_axis = arrow(pos=vector(0, 0, 0), axis=vector(1.5, 0, 0), color=color.red, shaftwidth=0.02)
-        y_axis = arrow(pos=vector(0, 0, 0), axis=vector(0, 1.5, 0), color=color.green, shaftwidth=0.02)
+// Create a material with a semi-transparent white color
+const sphereMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    opacity: 0.3,
+    transparent: true,
+    wireframe: true // Display the sphere as a wireframe
+});
 
-        # Axis Labels for States
-        label(pos=vector(0, 0, 1.8), text="|0>", color=color.blue, height=20, box=False, opacity=0, bold=True)
-        label(pos=vector(0, 0, -1.8), text="|1>", color=color.blue, height=20, box=False, opacity=0, bold=True)
-        label(pos=vector(1.8, 0, 0), text="|+>", color=color.red, height=20, box=False, opacity=0, bold=True)
-        label(pos=vector(-1.8, 0, 0), text="|->", color=color.red, height=20, box=False, opacity=0, bold=True)
-        label(pos=vector(0, 1.8, 0), text="|i>", color=color.green, height=20, box=False, opacity=0, bold=True)
-        label(pos=vector(0, -1.8, 0), text="|-i>", color=color.green, height=20, box=False, opacity=0, bold=True)
+// Combine the geometry and material into a mesh
+const blochSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+scene.add(blochSphere); // Add the sphere to the scene
+// Function to create an axis line from start to end with a specified color
+function createAxis(start, end, color) {
+    const material = new THREE.LineBasicMaterial({ color: color });
+    const points = [start, end];
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    return new THREE.Line(geometry, material);
+}
 
-        # Axis Labels for Coordinates
-        label(pos=vector(1.6, 0, 0), text="x-axis", color=color.red, height=15, box=False, opacity=0, bold=True)
-        label(pos=vector(0, 1.6, 0), text="y-axis", color=color.green, height=15, box=False, opacity=0, bold=True)
-        label(pos=vector(0, 0, 1.6), text="z-axis", color=color.blue, height=15, box=False, opacity=0, bold=True)
+// Add the x-axis in red
+const xAxis = createAxis(
+    new THREE.Vector3(-1.5, 0, 0), // Start point
+    new THREE.Vector3(1.5, 0, 0), // End point
+    0xff0000 // Red color
+);
+scene.add(xAxis);
 
-        # Highlighting the planes
-        xy_plane = ring(pos=vector(0, 0, 0), axis=vector(0, 0, 1), radius=1, thickness=0.01, color=color.cyan, opacity=0.5)
-        yz_plane = ring(pos=vector(0, 0, 0), axis=vector(1, 0, 0), radius=1, thickness=0.01, color=color.orange, opacity=0.5)
-        xz_plane = ring(pos=vector(0, 0, 0), axis=vector(0, 1, 0), radius=1, thickness=0.01, color=color.purple, opacity=0.5)
+// Add the y-axis in green
+const yAxis = createAxis(
+    new THREE.Vector3(0, -1.5, 0), // Start point
+    new THREE.Vector3(0, 1.5, 0), // End point
+    0x00ff00 // Green color
+);
+scene.add(yAxis);
 
-        # Qubit representation
-        qubit_arrow = arrow(pos=vector(0, 0, 0), axis=vector(0, 0, 1), color=color.yellow, shaftwidth=0.05)
+// Add the z-axis in blue
+const zAxis = createAxis(
+    new THREE.Vector3(0, 0, -1.5), // Start point
+    new THREE.Vector3(0, 0, 1.5), // End point
+    0x0000ff // Blue color
+);
+scene.add(zAxis);
+// Function to create an arrow representing the qubit state
+function createQubitArrow() {
+    const direction = new THREE.Vector3(0, 0, 1); // Default direction along the z-axis
+    const length = 1; // Length of the arrow
+    const color = 0xffff00; // Yellow color
+    const arrowHelper = new THREE.ArrowHelper(direction, new THREE.Vector3(0, 0, 0), length, color);
+    return arrowHelper;
+}
 
-        # Function to update the qubit state and display
-        def update_qubit(theta, phi):
-            # Convert spherical to Cartesian coordinates
-            x = math.sin(theta) * math.cos(phi)
-            y = math.sin(theta) * math.sin(phi)
-            z = math.cos(theta)
+const qubitArrow = createQubitArrow();
+scene.add(qubitArrow); // Add the qubit arrow to the scene
+// Function to update the qubit arrow's direction based on theta and phi angles
+function updateQubitState(theta, phi) {
+    // Convert spherical coordinates to Cartesian coordinates
+    const x = Math.sin(theta) * Math.cos(phi);
+    const y = Math.sin(theta) * Math.sin(phi);
+    const z = Math.cos(theta);
 
-            # Set the qubit arrow direction
-            qubit_arrow.axis = vector(x, y, z)
+    // Update the direction of the qubit arrow
+    qubitArrow.setDirection(new THREE.Vector3(x, y, z).normalize());
+}
 
-        # Functions to set predefined states
-        def set_state_0():
-            update_qubit(0, 0)
+// Example: Set the qubit state to |+> (theta = π/2, phi = 0)
+updateQubitState(Math.PI / 2, 0);
+// Function to handle window resizing
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight; // Update camera aspect ratio
+    camera.updateProjectionMatrix(); // Apply the changes to the camera
+    renderer.setSize(window.innerWidth, window.innerHeight); // Update renderer size
+}
 
-        def set_state_1():
-            update_qubit(pi, 0)
+// Add event listener for window resize
+window.addEventListener('resize', onWindowResize, false);
 
-        def set_state_i():
-            update_qubit(pi / 2, pi / 2)
+// Animation loop to render the scene
+function animate() {
+    requestAnimationFrame(animate); // Request the next frame
 
-        def set_state_minus_i():
-            update_qubit(pi / 2, 3 * pi / 2)
+    // Optional: Rotate the Bloch sphere for better visualization
+    blochSphere.rotation.y += 0.01;
 
-        def set_superposition_state():
-            update_qubit(pi / 2, 0)
+    renderer.render(scene, camera); // Render the scene from the perspective of the camera
+}
+animate(); // Start the animation loop
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+// Initialize OrbitControls for interactive manipulation
+const controls = new THREE.OrbitControls(camera, renderer.domElement
+::contentReference[oaicite:0]{index=0}
+ 
 
-        def set_state_plus():
-            update_qubit(pi / 2, 0)
-
-        def set_state_minus():
-            update_qubit(pi / 2, pi)
-
-        # Initialize the qubit state to |0>
-        set_state_0()
-    </py-script>
+    </script>
 </body>
 </html>
